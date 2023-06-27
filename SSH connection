@@ -1,0 +1,102 @@
+SSH connection
+
+I - connection using password:
+
+	1.check your hostname by typing in the terminal:
+		-> nano /etc/hosts
+		there should be 2 or more hosts. Finf yours (most likely secon from the top)
+		exit the nano editor
+
+	2.check ip address of your machines (host and client) by typing in the terminal:
+		-> ifconfig -a OR ip address
+		remember address and check if both your machines are connected into the same network
+
+	3.install openssh-service by typing in the terminal:
+		-> sudo apt-get install openssh-service
+
+	4.make sure your server machine is running openssh service:
+		-> to check if it is active type : sudo service ssh status
+			*if is active move to step 5
+
+			*if is inactive type: sudo service ssh start
+
+	5. connect to your desired machine by typing:
+		-> ssh hostname@ip_address filling those name with actual data
+
+
+
+ II - connection using keys:
+
+ 	*public key lives/we push to the remote machine
+ 	*private key is stored on our local machine
+
+ 	1. on your local machine type in terminal
+ 		-> ssh-keygen -t rsa -b 4096
+ 
+ 				-t = means that we want to use rsa as the type of key
+ 				-b = means our generated key will be more secure		
+ 		
+ 		->it will show a question where you wanna store a key so default option is fine so click enter
+
+ 		->you may wanna set a passphrase but is not necessary
+
+ 		-> click enter and your key should be generated
+
+ 	2. navigate to directory where your keys are stored and list its contents:
+ 		-> ~/.ssh && ll
+
+ 		you should see 2 files that we are interested in: id_rsa and id_rsa.pub
+
+ 		first one is for our local machine and second is that we wanna transfer to our remote machine
+
+
+ 	3. there are 2 ways to push public key:
+
+ 		3.1 manually:
+
+ 		 	make sure there is a .ssh directory in your remote machine:
+ 		 	-> navigate to your home directory and type: mkdir .ssh
+ 		 	if it does not exist this command will create it
+
+ 		 	-> use this command placing your actual data in the right places
+
+ 		 		scp ~/.ssh/id_rsa.pub your_hostname@your_machine_ip_address:/home/hostname/.ssh/name_of_file_where_to_put_uploaded_key
+ 		 		**scp command allows to copy files through ssh
+
+ 		 		example: scp ~/.ssh/id_rsa.pub johny@192.168.54.208:/home/johny/.ssh/uploaded_pub_key.pub
+
+ 		 		hit enter
+
+ 		 		you will be asked for password because we haven't established key-based auth yet
+
+ 		 	-> on your remote machine terminal type: cat ~/.ssh/uploaded_pub_key.pub >> (double arrow means append to a file) ~/.ssh/authorized_keys
+ 		 		this command append to a file your uploaded key and store it there
+
+ 		 	-> now it's time to set the right permissions to our folder and file
+
+ 		 		type: chmod 700 ~/.ssh/  + enter  | this sets permissions so that, (U)ser / owner can read, can write and can execute. (G)roup can't read, can't write and can't execute. (O)thers can't read, 		can't write and can't execute.
+
+ 		 		type: chmod 600 ~/.ssh/*  + enter | this sets permissions so that, (U)ser / owner can read, can write and can't execute . (G)roup can't read, can't write and can't execute. (O)thers can't read, can't write and can't execute. Asterisk means we set those permissions to all files within .ssh directory
+
+
+ 		 	now we set up key-based auth so to maximize the security we should turn off the password authentication in the config file
+
+ 		 	but first do a backup (always!)
+ 		 	type:  sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak -> this command creates a copy of configuration file so if something goes wrong along the way we will be able to restore original 			configuration.
+
+ 		 	type: sudo nano /etc/ssh/sshd_config 
+ 		 	within this file look for "PasswordAuthentication" field and make sure it doesn't have a "#" sign and then change it to "no"
+ 		 	save the file and restart the ssh service to make changes
+
+ 		 	type: sudo service ssh restart
+
+
+ 	3.2 using command ssh copy ID
+
+ 		- log into your remote machine using password
+
+ 		- on your local machine terminal type: ssh-copy-id your_hostname@your_machine_ip_address
+
+ 		- you will be asked for password so type it and that's it, this command should automatically set .ssh directory on your remote machine, set the right permissions, but it didn't change configuration file as was done in 3.1 option
+
+			 
